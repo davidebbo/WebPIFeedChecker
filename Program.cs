@@ -30,8 +30,7 @@ namespace WebPIFeedChecker
             var entries = from entry in root.Descendants(ns + "entry")
                           select new FeedEntry
                           {
-                              Id = entry.Elements(ns + "productId").First().Value,
-                              Reachable = false,
+                              Id = entry.Element(ns + "productId").Value,
                               Dependencies = from dependency in entry.Descendants(ns + "dependency")
                                              select dependency.Descendants(ns + "productId").First().Value
                           };
@@ -40,6 +39,19 @@ namespace WebPIFeedChecker
 
             // First entry is the root node
             WalkFeedEntry(_entries.Values.First());
+
+            foreach (var element in root.Element(ns + "featuredProducts").Elements(ns + "productId"))
+            {
+                FeedEntry entry;
+                if (_entries.TryGetValue(element.Value, out entry))
+                {
+                    WalkFeedEntry(entry);
+                }
+                else
+                {
+                    Console.WriteLine("Missing featured product: " + element.Value);
+                }
+            }
 
             foreach (var entry in _entries.Values.Where(e => !e.Reachable))
             {
@@ -53,7 +65,15 @@ namespace WebPIFeedChecker
 
             foreach (var dependencyId in entry.Dependencies)
             {
-                WalkFeedEntry(_entries[dependencyId]);
+                FeedEntry depEntry;
+                if (_entries.TryGetValue(dependencyId, out depEntry))
+                {
+                    WalkFeedEntry(depEntry);
+                }
+                else
+                {
+                    Console.WriteLine("Missing dependency: " + dependencyId);
+                }
             }
         }
 
