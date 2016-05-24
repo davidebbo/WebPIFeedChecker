@@ -75,11 +75,15 @@ namespace WebPIFeedChecker
                    {
                        Id = entry.Element(ns + "productId").Value,
                        Dependencies = entry.Descendants(ns + "dependency").SelectMany(productsIds)
+                                        .Concat(entry.Descendants(ns + "updates").SelectMany(productsIds))
                    };
         }
 
         static void WalkFeedEntry(FeedEntry entry)
         {
+            // No need to process again
+            if (entry.Reachable) return;
+
             entry.Reachable = true;
 
             foreach (var dependencyId in entry.Dependencies)
@@ -101,6 +105,8 @@ namespace WebPIFeedChecker
             public string Id { get; set; }
             public bool Reachable { get; set; }
             public IEnumerable<string> Dependencies { get; set; }
+
+            public override string ToString() { return Id; }
         }
     }
 }
