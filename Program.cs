@@ -19,7 +19,7 @@ namespace WebPIFeedChecker
             }
 
             var entries = args.Skip(1).SelectMany(ReadFeed);
-            _entries = entries.ToDictionary(e => e.Id);
+            _entries = entries.ToDictionary(e => e.Id, StringComparer.OrdinalIgnoreCase);
 
             string[] roots = File.ReadAllLines(args[0]);
             foreach (string root in roots)
@@ -56,7 +56,7 @@ namespace WebPIFeedChecker
                               Dependencies = from productId in dependency.Descendants(ns + "productId")
                                              select productId.Value
                           };
-            var topDepsDict = topDeps.ToDictionary(e => e.Id);
+            var topDepsDict = topDeps.ToDictionary(e => e.Id, StringComparer.OrdinalIgnoreCase);
 
             Func<XElement, IEnumerable<string>> productsIds = (dependency) =>
             {
